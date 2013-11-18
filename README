@@ -1,0 +1,166 @@
+##########################################################################################
+##########################################################################################
+##################      pyDA 1.0 - Kyle Hickmann - November 2013 #########################
+##########################################################################################
+##########################################################################################
+Open source software protected under GNU public license. Free as in freedom and free as in 
+beer. Use this code as you wish but you may not copy the code to use for monetary gain. No 
+warranty, no maintenance, no guarantees, not even fitness for a purpose. This will 
+basically destroy your computer. 
+##########################################################################################
+
+This describes the contents of ~/pyDA/. This is python code and some shell scripts to 
+allow for rudimentary data assimilation for an SIR epidemic model. This will be developed 
+into a full blown python module for data assimilation, pyDA, which will consist of:
+
+     - Functions to perform various flavors of Ensemble Kalman filtering
+     - Functions to perform particle filter weight calculation
+     - Functions to resample particles according to weight
+     - Multiple examples to experiment with data assimilation
+     - Functions to reshape data, ensemble, and parameter matrices occuring 
+       in the examples
+     - Functions to visualize data assimilation process occurring in the exmples
+
+##########################################################################################
+##########################################################################################
+Non-Standard Packages Used:
+	 Numpy, Scipy, and Matplotlib
+##########################################################################################
+Quick Start:
+      Download all contents, detailed below, to some directory. Navigate to that directory
+and enter
+    $ ./runKFassim.sh
+
+This will generate data and simulation then carry out an ensemble Kalman filter (EnKF) 
+process on the data. Files should be created in ./data and ./figures. If that works then
+you can run 
+    $./runPFassim.h
+and play around with the histograms and specific sampling strategies in EnParamGen.py. 
+
+It is easy to edit runKassim.sh and runPFassim.sh to switch to one of SIRkf*.py for a 
+different kind of EnKF or switch to SIRpf_sde.py to use a stochastic ensemble for the
+particles. 
+
+After that let me know what you would like to see more or less of at khickma@tulane.edu
+##########################################################################################
+Currently contents are:
+
+~/pyDA/.
+
+Data Assimilation:
+	kflib.py //
+		 Library of functions for Kalman-Filter (KF) based ensemble analysis. Currently only includes 
+		 enKF1() to compute analysis ensemble by modifying each ensemble member. 
+	pflib.py //
+		 Library of functions for PF based ensemble analysis. For the Particle filtering methods the 
+		 goal is to return a weight associated with each particle in the ensemble. Then one must 
+		 resample using one of the resampling functions provided. Resampling functions use the Ensemble 
+		 and Parameter arrays, along with weights calulated with one of the Particle filters, to 
+		 generate an analysis Ensemble with equal weights. Current weight generation, naivePF(). Current 
+		 particle resampling, naiveResamp().
+
+Visualization:
+	NOTE: The visualization scripts only work for the SIR example included. However, they should give an idea of 
+	      how to create custom visualizations. 
+	AssimCone.py //
+		     Uses filled confidence curves to plot results of simulation, data collection, ensemble, and 
+		     analysis in two graphs. One for the ensemble array and one for the analysis array. Plots only 
+		     one ensemble/analysis instance in series. Confidence interval levels and datafile paths are 
+		     hardcoded in.
+	AssimVis.py //
+		    Plot results of simulation, data collection, ensemble, and analysis on one graph. Datafile paths
+		    are hardcoded in. 
+	KFhistograms.py // 
+			Script to plot distributions of SIR parameters as new data is assimilated. Ensemble iterations 
+			examined are hardcoded along with actual parameter values and datafile paths. 
+
+Example:
+	The example included performs data assimilation on an SIR model. Only noisey Infection levels are considered
+	measured. 
+
+	EnParamGen.py // 
+		      Write prior ensemble parameters to file. Takes draws from prior distributions of SIR parameters
+		      and writes them to a file. These are used to create the ensemble runs.
+	epiODElib.py // 
+		     This library contains a suite of functions to generate simulations of stochastic and deterministic 
+		     disease progressions with and without noise due to model error. Functions included are: SIRsde_noise(), 
+		     SIRode(), SIR_D(), rk4(). The rk4() is an implementation of 4th order Runge-Kutta.
+	SIRdata.py //
+		   Generate data, with noise, from an Epidemic simulation. Requires an input file to specify parameters, 
+		   initial conditions, duration, and data sample rate. SIR simulation is deterministic and number of time
+		   steps is hardcoded into SIRdata.py along with names of datafiles generated.
+	SIR_ensemble_lib.py //
+			    This library has functions for SIR ensemble generation,
+			    ensemble-to-measurement mapping, and Ensemble reshaping. It is meant
+			    to be used in conjunction with the kflib.py or pflib.py.
+			    Functions:
+			       SIRens = Function to generate the SIR ensemble from parameter sets. 
+			                The ensemble returned has correct form to pass to an analysis.
+				        Also used to restore SIR balances in analysis after enKF step.
+
+			       SIRmeasure = Function to map ensemble to measurements. Measurements 
+                                            returned is in form to be passed to an analysis.
+
+			       SIRshape = Function to reformat Ensemble array and time vector to a 
+                                          form easy for AssimViz.py to graph.
+	SIRkf1.py //
+		  This script performs ensemble generation and analysis generation for SIR data.  It uses 
+		  re-propagation through the SIR model starting at the previously measured data point to 
+		  maintain SIR balances during assimilation. Analysis forecasts are done starting at the 
+		  previous data point.
+	SIRkf2.py //
+		  This script performs ensemble generation and analysis generation for SIR data.  It uses no 
+		  re-propagation through SIR to maintain SIR balances. After enKF analysis it simply ensures 
+		  (S,I) are between 0 and 1.0. Analysis forecasts are then done starting at the most recent 
+		  data point.
+	SIRkf3.py //
+		  This script performs ensemble generation and analysis generation for SIR data. It uses 
+		  re-propagation through the SIR model starting at t0 to maintain SIR balances during 
+		  assimilation. Analysis forecasts are done starting at t0.
+	SIRkf4.py //
+		  This script performs ensemble generation and analysis generation for SIR data. It uses 
+		  re-propagation through the SIR model starting at t0 to maintain SIR balances during 
+		  assimilation. Analysis forecasts are done starting at t0. Unlike the assimilation performed 
+		  in SIRkf3.py, here the assimilation step uses all measured data up to the current data point. 
+		  Ensemble measurements are adjusted accordingly. This most closely resembles Evensen's Ensemble 
+		  Smoother.
+	SIRkf5.py //
+		  This script performs ensemble generation and analysis generation for SIR data. It uses 
+		  re-propagation through the SIR model starting at t0 to maintain SIR balances during 
+		  assimilation. Analysis forecasts are done starting at t0. Unlike the assimilation performed 
+		  in SIRkf4.py, here the assimilation step uses only the most recent 3 measured data points, 
+		  including the current data point. Ensemble measurements are adjusted accordingly. This most 
+		  closely resembles Evensen's Ensemble Kalman Smoother.
+	SIRpf_naive.py //
+		       This script performs ensemble generation and analysis generation for SIR data using the 
+		       most naive version of particle filtering (PF). Weighting is done using the 'forward likelihood'
+		       as an importance sampler and resampling is done just using the weights. The ensemble is 
+		       generated deterministically so the assimilation is highly degenerate. No repropogation through 
+		       the model takes place. Propagation is only from current data point. However, due to the nature
+		       of the filter-resample scheme balances are maintained.
+	SIRpf_sde.py //
+     		       This script performs ensemble generation and analysis generation for SIR data using the 
+		       most naive version of particle filtering (PF). Weighting is done using the 'forward likelihood'
+		       as an importance sampler and resampling is done just using the weights. The ensemble is 
+		       generated stochastically so the assimilation is less degenerate. Parameter exploration is 
+		       still highly degenerate. Propagation is only from current data point. However, due to the nature
+		       of the filter-resample scheme balances are maintained.
+Scripts:
+	runKFassim.sh //
+		      BASH script to run the data assimilation process with one of the EnKF routines. Need to have
+		      subdirectories ./data and ./figures already setup. dataIC.dat needs to be in ./data directory. 
+		      First, simulation and data is generated. Then prior parameters are drawn to intialize the 
+		      ensemble. Next, the data assimilation scheme takes place. This can be changed to call SIRkf*.py.
+		      Last AssimVis.py and AssimCone.py are called. 		      
+	runPFassim.sh //
+     		      BASH script to run the data assimilation process with one of the PF routines. Need to have
+		      subdirectories ./data and ./figures already setup. dataIC.dat needs to be in ./data directory. 
+		      First, simulation and data is generated. Then prior parameters are drawn to intialize the 
+		      ensemble. Next, the data assimilation scheme takes place. This can be changed to call SIRpf*.py.
+		      Last AssimVis.py and AssimCone.py are called. 		      
+
+~/pyDA/data
+	Contains dataIC.dat which defines the SIR data generation. All parameter, analysis, and ensemble files will be output
+	to this directory when the above scripts are run. 'Simulation data' and 'simulated data' files are also stored here.
+~/pyDA/figures/samples
+	Series of plots detailing data assimilation process for SIR using SIRkf1.py routine.
