@@ -1,6 +1,7 @@
 ###############################################################################
 ###############################################################################
-#   Copyright 2013 Kyle S. Hickmann                                           
+#   Copyright 2013 Kyle S. Hickmann and
+#                  The Administrators of the Tulane Educational Fund
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -132,6 +133,14 @@ def SIRmeasure(EnsArray):
     #            (S(t0), I(t0), S(t1), I(t1), ..., S(tN), I(tN))^T
 
     EnsObs = EnsArray[-1]
+    return EnsObs
+
+# For ILI data must multiply by 100%
+def ILImeasure(EnsArray):
+    # EnsArray = (2*Ntimestep)x(EnSize) numpy array. Column is 
+    #            (S(t0), I(t0), S(t1), I(t1), ..., S(tN), I(tN))^T
+
+    EnsObs = 100.0*EnsArray[-1]
     return EnsObs
 ##################################################################
 # RETURNS:

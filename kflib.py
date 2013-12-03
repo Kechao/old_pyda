@@ -1,6 +1,7 @@
 ###############################################################################
 ###############################################################################
-#   Copyright 2013 Kyle S. Hickmann                                           
+#   Copyright 2013 Kyle S. Hickmann and
+#                  The Administrators of the Tulane Educational Fund
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -38,7 +39,7 @@ import math
 ######################################################################
 
 # Function to generate enKF analysis. 
-# In this, most basic, form of the enFK the analysis covariance is not
+# In this, most basic, form of the enKF the analysis covariance is not
 # computed explicitly. Instead, each ensemble member is updated individually. 
 def enKF1(Data,DatCov,Ensemble,Param,EnsObs):
     # Collect data sizes.
